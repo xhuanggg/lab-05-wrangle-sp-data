@@ -33,10 +33,7 @@ nrow(lq_ak)
 
 ### Exercise 2
 
-Remove this text, and add your answer for Exercise 1 here.
-Add code chunks as needed.
-Don't forget to label your code chunk.
-Do not use spaces in code chunk labels.
+There are three Denny's and two La Quinta in Alaska. Each Denny's corresponds to two La Quinta. Therefore, there should be $$3\times2=6$$ pairs.
 
 ### Exercise 3
 
