@@ -1,7 +1,7 @@
 ---
 title: "Lab 05 - La Quinta is Spanish for next to Denny's, Pt. 2"
-author: "Insert your name here"
-date: "Insert date here"
+author: "Thomas Huang"
+date: "2026-02-06"
 output: github_document
 ---
 
@@ -14,6 +14,8 @@ library(dsbox)
 
 ```{r load-data, message = FALSE}
 states <- read_csv("data/states.csv")
+data(dennys, package = "dsbox")
+data(laquinta, package = "dsbox")
 ```
 
 ### Exercise 1

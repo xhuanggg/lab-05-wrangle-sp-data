@@ -1,7 +1,7 @@
 Lab 05 - La Quinta is Spanish for next to Denny’s, Pt. 2
 ================
-Insert your name here
-Insert date here
+Thomas Huang
+2026-02-06
 
 ### Load packages and data
 
@@ -12,6 +12,8 @@ library(dsbox)
 
 ``` r
 states <- read_csv("data/states.csv")
+data(dennys, package = "dsbox")
+data(laquinta, package = "dsbox")
 ```
 
 ### Exercise 1
