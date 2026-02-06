@@ -18,9 +18,23 @@ data(laquinta, package = "dsbox")
 
 ### Exercise 1
 
-Remove this text, and add your answer for Exercise 1 here. Add code
-chunks as needed. Don’t forget to label your code chunk. Do not use
-spaces in code chunk labels.
+There are three Denny’s and two La Quinta in Alaska.
+
+``` r
+dn_ak <- dennys %>%
+  filter(state == "AK")
+nrow(dn_ak)
+```
+
+    ## [1] 3
+
+``` r
+lq_ak <- laquinta %>%
+  filter(state == "AK")
+nrow(lq_ak)
+```
+
+    ## [1] 2
 
 ### Exercise 2
 
