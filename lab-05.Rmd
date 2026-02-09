@@ -37,18 +37,50 @@ There are three Denny's and two La Quinta in Alaska. Each Denny's corresponds to
 
 ### Exercise 3
 
-...
+```{r Ex3}
+dn_lq_ak <- full_join(dn_ak, lq_ak,
+  by = "state"
+)
+dn_lq_ak
+```
 
 ### Exercise 4
 
-...
+There are six observations in this data frame. The variable are street address, city, state, zip code, longitude, and latitude of each Denny's and La Quinta.
+```{r Ex4}
+glimpse(dn_lq_ak)
+```
 
 ### Exercise 5
 
-...
+dplyr::mutate(new_var = ...) can be used to create a new variable.
+```{r Ex5}
+# Define a cool function that calculates the distance between any two points on the earth.
+haversine <- function(long1, lat1, long2, lat2, round = 3) {
+  # convert to radians
+  long1 <- long1 * pi / 180
+  lat1 <- lat1 * pi / 180
+  long2 <- long2 * pi / 180
+  lat2 <- lat2 * pi / 180
+
+  R <- 6371 # Earth mean radius in km
+
+  a <- sin((lat2 - lat1) / 2)^2 + cos(lat1) * cos(lat2) * sin((long2 - long1) / 2)^2
+  d <- R * 2 * asin(sqrt(a))
+
+  return(round(d, round)) # distance in km
+}
+```
 
 ### Exercise 6
 
-...
+```{r Ex6}
+dn_lq_ak <- dn_lq_ak %>% 
+  dplyr::mutate(
+    distance = haversine(longitude.x, latitude.x, longitude.y, latitude.y)
+  )
+
+glimpse(dn_lq_ak)
+```
 
 Add exercise headings as needed.
