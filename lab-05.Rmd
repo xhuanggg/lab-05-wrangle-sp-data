@@ -83,4 +83,67 @@ dn_lq_ak <- dn_lq_ak %>%
 glimpse(dn_lq_ak)
 ```
 
-Add exercise headings as needed.
+### Exercise 7
+
+```{r Ex7}
+dn_lq_ak <- dn_lq_ak %>% 
+  group_by(address.x) %>% 
+  mutate(min_distance = min(distance))
+```
+
+### Exercise 8
+
+```{r Ex8}
+# Summary stats
+psych::describe(dn_lq_ak$min_distance)
+
+ggplot(data = dn_lq_ak, aes(x = min_distance)) +
+  geom_histogram()
+```
+
+### Exercise 9
+
+```{r Ex9-Def-Function}
+state_function <- function(state_abbr){
+  dn_state <- dennys %>%
+  filter(state == state_abbr)
+
+  lq_state <- laquinta %>%
+  filter(state == state_abbr)
+  
+  dn_lq_state <- full_join(dn_state, lq_state,
+    by = "state"
+  ) %>% 
+    dplyr::mutate(
+      distance = haversine(longitude.x, latitude.x, longitude.y, latitude.y)
+    ) %>% 
+    group_by(address.x) %>% 
+    mutate(min_distance = min(distance))
+  
+  psych::describe(dn_lq_state$min_distance)
+  ggplot(data = dn_lq_state, aes(x = min_distance)) +
+    geom_density()
+}
+```
+
+```{r Ex9-NC}
+state_function("NC")
+```
+
+### Exercise 10
+
+```{r Ex10-TX}
+state_function("TX")
+```
+
+### Exercise 11
+
+I chose New York for this exercise.
+```{r Ex11-NY}
+state_function("NY")
+```
+
+### Exercise 12
+
+I think the joke is mostly true. It's easy to find a La Quinta close to a Denny's.
+

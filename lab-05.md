@@ -143,4 +143,101 @@ glimpse(dn_lq_ak)
     ## $ latitude.y  <dbl> 61.18843, 64.82426, 61.18843, 64.82426, 61.18843, 64.82426
     ## $ distance    <dbl> 2.035, 416.031, 5.998, 413.653, 419.879, 5.197
 
-Add exercise headings as needed.
+### Exercise 7
+
+``` r
+dn_lq_ak <- dn_lq_ak %>% 
+  group_by(address.x) %>% 
+  mutate(min_distance = min(distance))
+```
+
+### Exercise 8
+
+``` r
+# Summary stats
+psych::describe(dn_lq_ak$min_distance)
+```
+
+    ##    vars n mean   sd median trimmed  mad  min max range  skew kurtosis   se
+    ## X1    1 6 4.41 1.87    5.2    4.41 1.19 2.04   6  3.96 -0.45    -1.96 0.77
+
+``` r
+ggplot(data = dn_lq_ak, aes(x = min_distance)) +
+  geom_histogram()
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value `binwidth`.
+
+![](lab-05_files/figure-gfm/Ex8-1.png)<!-- -->
+
+### Exercise 9
+
+``` r
+state_function <- function(state_abbr){
+  dn_state <- dennys %>%
+  filter(state == state_abbr)
+
+  lq_state <- laquinta %>%
+  filter(state == state_abbr)
+  
+  dn_lq_state <- full_join(dn_state, lq_state,
+    by = "state"
+  ) %>% 
+    dplyr::mutate(
+      distance = haversine(longitude.x, latitude.x, longitude.y, latitude.y)
+    ) %>% 
+    group_by(address.x) %>% 
+    mutate(min_distance = min(distance))
+  
+  psych::describe(dn_lq_state$min_distance)
+  ggplot(data = dn_lq_state, aes(x = min_distance)) +
+    geom_density()
+}
+```
+
+``` r
+state_function("NC")
+```
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+![](lab-05_files/figure-gfm/Ex9-NC-1.png)<!-- -->
+
+### Exercise 10
+
+``` r
+state_function("TX")
+```
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+![](lab-05_files/figure-gfm/Ex10-TX-1.png)<!-- -->
+
+### Exercise 11
+
+I chose New York for this exercise.
+
+``` r
+state_function("NY")
+```
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+![](lab-05_files/figure-gfm/Ex11-NY-1.png)<!-- -->
+
+### Exercise 12
+
+I think the joke is mostly true. It’s easy to find a La Quinta close to
+a Denny’s.
