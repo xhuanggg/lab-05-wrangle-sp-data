@@ -8,6 +8,7 @@ Thomas Huang
 ``` r
 library(tidyverse) 
 library(dsbox) 
+library(ggridges)
 ```
 
 ``` r
@@ -241,3 +242,118 @@ state_function("NY")
 
 I think the joke is mostly true. It’s easy to find a La Quinta close to
 a Denny’s.
+
+### Exercise 13
+
+``` r
+# Create an empty data frame
+df <- data.frame(
+  state = character(),
+  min_distance = numeric()
+)
+
+# Create a list of states
+states <- list("NY", "NV", "NM", "NJ", "NH", "NE", "ND", "NC")
+
+# Define another state function
+state_function_2 <- function(state_abbr){
+  
+  dn_state <- dennys %>%
+  filter(state == state_abbr) 
+
+  lq_state <- laquinta %>%
+  filter(state == state_abbr)
+  
+  dn_lq_state <- full_join(dn_state, lq_state,
+    by = "state"
+  ) %>% 
+    dplyr::mutate(
+      distance = haversine(longitude.x, latitude.x, longitude.y, latitude.y)
+    ) %>% 
+    group_by(address.x) %>% 
+    mutate(min_distance = min(distance)) %>% 
+    dplyr::select(state, min_distance)
+  
+  return(dn_lq_state)
+
+}
+
+# Loop over to calculate the min distances in the list of states
+for (state in states){
+  dn_lq_state <- state_function_2(state)
+  df <- rbind(df, dn_lq_state)
+}
+```
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+    ## Adding missing grouping variables: `address.x`
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+    ## Adding missing grouping variables: `address.x`
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+    ## Adding missing grouping variables: `address.x`
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+    ## Adding missing grouping variables: `address.x`
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+    ## Adding missing grouping variables: `address.x`
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+    ## Adding missing grouping variables: `address.x`
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+    ## Adding missing grouping variables: `address.x`
+
+    ## Warning in full_join(dn_state, lq_state, by = "state"): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 1 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+    ## Adding missing grouping variables: `address.x`
+
+``` r
+ggplot(df, aes(x = min_distance, y = state)) + 
+  geom_density_ridges(fill = "lightblue")
+```
+
+    ## Picking joint bandwidth of 9.86
+
+![](lab-05_files/figure-gfm/Ex13-1.png)<!-- -->
