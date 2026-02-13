@@ -245,6 +245,12 @@ a Denny’s.
 
 ### Exercise 13
 
+The distribution of minimum distance varies by state. Such distributions
+in Nevada, New Mexico, and North Dakota is approximately normal. But
+such distributions follow a bi-modal distribution in states like New
+York, New Hampshire, and Nebreska. It is possible that there are two or
+more metropolitan areas in these states.
+
 ``` r
 # Create an empty data frame
 df <- data.frame(
@@ -357,3 +363,158 @@ ggplot(df, aes(x = min_distance, y = state)) +
     ## Picking joint bandwidth of 9.86
 
 ![](lab-05_files/figure-gfm/Ex13-1.png)<!-- -->
+
+### Exercise 14
+
+I played with color and width of the bars. But they are not as good as
+they were in the first place.
+
+``` r
+# Source pattern: https://stackoverflow.com/a/36149654
+# Posted by inscaven
+# Retrieved 2026-02-08, License - CC BY-SA 3.0
+
+library(usmap) #import the package
+library(tidyverse)
+library(usmap)
+library(ggplot2)
+library(sf)
+```
+
+    ## Linking to GEOS 3.13.0, GDAL 3.8.5, PROJ 9.5.1; sf_use_s2() is TRUE
+
+``` r
+library(grid)
+
+ dn <- dennys
+ lq <- laquinta
+
+# 1) Closest La Quinta distance for each Denny's (all states)
+dn_lq_full <- full_join(
+  dn, lq,
+  by = "state",
+  suffix = c(".d", ".l")
+) %>%
+  filter(!is.na(latitude.d) & !is.na(latitude.l)) %>%
+   filter(!state %in% c("AK", "HI")) 
+```
+
+    ## Warning in full_join(dn, lq, by = "state", suffix = c(".d", ".l")): Detected an unexpected many-to-many relationship between `x` and `y`.
+    ## ℹ Row 1 of `x` matches multiple rows in `y`.
+    ## ℹ Row 23 of `y` matches multiple rows in `x`.
+    ## ℹ If a many-to-many relationship is expected, set `relationship =
+    ##   "many-to-many"` to silence this warning.
+
+``` r
+dn_lq_full_mindist <- dn_lq_full %>%
+  group_by(address.d) %>%
+  mutate(distance = haversine(longitude.d, latitude.d, longitude.l, latitude.l)) %>%
+  summarize(
+    closest = min(distance, na.rm = TRUE),
+    state   = first(state),
+    .groups = "drop"
+  )
+
+# 2) Per-state binned distributions (these become the embedded mini bar charts)
+binwidth_m <- 25
+
+# Cap extreme tail so small charts remain legible
+x_cap <- as.numeric(quantile(dn_lq_full_mindist$closest, 0.99, na.rm = TRUE))
+x_max <- ceiling(x_cap / binwidth_m) * binwidth_m
+
+state_bins <- dn_lq_full_mindist %>%
+  mutate(
+    closest_cap = pmin(closest, x_max),
+    bin_left    = floor(closest_cap / binwidth_m) * binwidth_m,
+    bin_mid     = bin_left + binwidth_m / 2
+  ) %>%
+  count(state, bin_mid, name = "n")
+
+y_max <- max(state_bins$n, na.rm = TRUE)
+
+# 3) US map as sf + centroids 
+states_sf <- usmap::us_map(regions = "states") 
+
+state_centroids <- states_sf %>%
+  st_centroid() %>%
+  mutate(
+    x = st_coordinates(.)[, 1],
+    y = st_coordinates(.)[, 2]
+  ) %>%
+  st_drop_geometry() %>%
+  transmute(state = abbr, x = x, y = y)
+```
+
+    ## Warning: st_centroid assumes attributes are constant over geometries
+
+``` r
+# Bounding box for scaling embedded plot sizes
+bb <- st_bbox(states_sf)
+x_range <- as.numeric(bb["xmax"] - bb["xmin"])
+y_range <- as.numeric(bb["ymax"] - bb["ymin"])
+
+# Size of embedded mini-plots in map coordinate units
+dx <- x_range * 0.04
+dy <- y_range * 0.04
+
+# 4) Base map
+base_map <- ggplot() +
+  geom_sf(data = states_sf, fill = "white", color = "gray60", linewidth = 0.2) +
+  coord_sf(clip = "off") +
+  theme_void()
+
+# 5) Build one mini-plot per state and place it at the state's centroid
+annotation_list <- purrr::pmap(
+  list(state_centroids$state, state_centroids$x, state_centroids$y),
+  function(st, cx, cy) {
+    st_dat <- state_bins %>% filter(state == st)
+    if (nrow(st_dat) < 2) return(NULL)
+    
+    mini <- ggplot(st_dat, aes(x = bin_mid, y = n)) +
+      geom_col(color = "blue", fill = "blue", linewidth = 0.2, width = 1) +
+      scale_x_continuous(limits = c(0, x_max), expand = c(0, 0)) +
+      scale_y_continuous(limits = c(0, y_max), expand = c(0, 0)) +
+      theme_void() +
+      theme(
+        plot.background = element_rect(fill = scales::alpha("white", 0.3), color = NA),
+        plot.margin = margin(1, 1, 1, 1)
+      )
+    
+    annotation_custom(
+      grob = ggplotGrob(mini),
+      xmin = cx - dx, xmax = cx + dx,
+      ymin = cy - dy, ymax = cy + dy
+    )
+  }
+)
+```
+
+    ## Warning: Removed 1 row containing missing values or values outside the scale range
+    ## (`geom_col()`).
+
+    ## Warning: Removed 1 row containing missing values or values outside the scale range
+    ## (`geom_col()`).
+    ## Removed 1 row containing missing values or values outside the scale range
+    ## (`geom_col()`).
+    ## Removed 1 row containing missing values or values outside the scale range
+    ## (`geom_col()`).
+    ## Removed 1 row containing missing values or values outside the scale range
+    ## (`geom_col()`).
+    ## Removed 1 row containing missing values or values outside the scale range
+    ## (`geom_col()`).
+    ## Removed 1 row containing missing values or values outside the scale range
+    ## (`geom_col()`).
+
+``` r
+annotation_list <- purrr::compact(annotation_list)
+
+result_plot <- Reduce(`+`, annotation_list, base_map)
+
+
+
+ggsave(
+  result_plot,
+  filename = "img/histogram-map.png",
+  width = 10, height = 6, units = "in", dpi = 300
+)
+```
